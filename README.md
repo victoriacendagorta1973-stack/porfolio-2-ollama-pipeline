@@ -1,67 +1,88 @@
 # Local AI Data Pipeline with Ollama & Pydantic Validation
 
-A production-ready Python architecture for structured data extraction and triage from unstructured input text, executed 100% locally using Ollama (llama3.2) and validated via Pydantic.
+A Python pipeline for extracting and classifying information from unstructured text using Ollama (`llama3.2`) and Pydantic.
 
-This repository demonstrates how to build privacy-first, zero-cost data extraction pipelines for enterprises with strict compliance needs (GDPR, HIPAA) or high-volume API constraints.
-
----
+Inference runs locally, and model responses are validated against a defined schema before being used by the application.
 
 ## Technical Features
 
-* Air-Gapped Local Inference: Executes LLM inference offline using Ollama (llama3.2). No third-party API keys or external data transmissions.
-* Deterministic Structured Outputs: Utilizes Pydantic's JSON schema enforcement to guarantee type-safe outputs (bool, str).
-* Zero Variable Cost: Eliminates per-token cloud API charges, making it scalable for massive batch processing.
-* Seamless Python Native Integration: Parses raw model outputs directly into validated Python data objects.
+- **Local inference:** Processes text using a locally hosted model through Ollama.
+- **Structured outputs:** Uses a JSON schema to specify the expected response structure.
+- **Pydantic validation:** Checks required fields and data types before creating Python objects.
+- **No per-token API fees:** Local inference avoids cloud inference charges. Hardware and electricity costs still apply.
+- **Python integration:** Returns validated objects for further processing.
 
----
+Schema validation checks structure and types. It does not guarantee that the extracted information is correct.
 
 ## Architecture Overview
 
-[ Unstructured Customer Request ]
-               │
-               ▼
-   [ Python App Execution ]
-               │
-               ▼ (Local HTTP Request via localhost:11434)
-   [ Ollama Engine (llama3.2) ] ── (Strict JSON Schema Enforcement)
-               │
-               ▼
-  [ Raw JSON Model Response ]
-               │
-               ▼
- [ Pydantic Model Validation ] ──► Validated Native Python Object
+```mermaid
+flowchart TD
+    A["Unstructured customer request"] --> B["Python application"]
+    B -->|"Local HTTP request"| C["Ollama: llama3.2"]
+    C -->|"JSON response"| D["Pydantic validation"]
+    D --> E["Validated Python object"]
+```
 
----
+Ollama is accessed through its local endpoint at `localhost:11434`.
 
 ## Requirements & Setup
 
-1. Ollama: Install Ollama on your host machine from ollama.com.
-2. Pull the Local Model:
-   ollama run llama3.2
-3. Install Dependencies:
-   pip install ollama pydantic
+### 1. Install Ollama
 
----
+Download and install Ollama from [ollama.com](https://ollama.com).
 
-## Execution & Output Sample
+### 2. Download the Model
 
-Run the local processor script:
+```bash
+ollama pull llama3.2
+```
+
+Ensure Ollama is running before executing the Python script.
+
+### 3. Install Python Dependencies
+
+```bash
+pip install ollama pydantic
+```
+
+Initial installation and model download require internet access. Subsequent inference can run offline once the required dependencies and model are available locally.
+
+## Execution
+
+Run the processor:
+
+```bash
 python procesador_local.py
+```
 
-### Validated Output Benchmark
+## Example Output
 
---- RESULTADO PROCESADO EN LOCAL (COSTO: $0.00) ---
+The following illustrates the expected output format:
+
+```text
+--- RESULTADO PROCESADO EN LOCAL ---
 Resumen: Problema de pago
 Categoría: Soporte Técnico
 Urgencia: Alta
 Escalado Humano: True
 
 Tipo de objeto validado: <class '__main__.SolicitudSoporte'>
+```
 
----
+Model-generated values may vary depending on the input and configuration.
 
-## Business & Commercial Use Cases
+## Potential Use Cases
 
-1. Healthcare & Legal Data Processing: Automated ingestion of sensitive documents where privacy policies forbid cloud LLM API usage.
-2. Cost-Optimization for Scale: Replacing repetitive cloud classification APIs with local inference servers, saving thousands in operational expenditure.
-3. Offline Desktop & Enterprise Applications: Embedding intelligent features directly into software deployed on local corporate infrastructure.
+- **Customer support triage:** Extract summaries, classify requests, and identify cases requiring human review.
+- **Document processing:** Convert unstructured text into structured records for downstream workflows.
+- **Local batch processing:** Process text without sending it to an external inference provider.
+- **Offline applications:** Add local language-model capabilities to desktop tools.
+
+## Privacy & Limitations
+
+Local inference can help keep input text on the host machine, provided the surrounding application and infrastructure are configured accordingly.
+
+This project does not, by itself, establish GDPR or HIPAA compliance. Deployment security, access controls, logging, retention policies, and applicable legal requirements must be assessed separately.
+
+Human review remains necessary where incorrect extraction or classification could have significant consequences.
